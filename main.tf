@@ -106,3 +106,40 @@ resource "azurerm_network_interface_security_group_association" "main" {
   network_security_group_id = azurerm_network_security_group.nsg.id
 }
 
+data "cloudinit_config" "ws-init" {
+  gzip = false
+  base64_encode = true
+
+  part {
+    filename = "init.sh"
+    content_type = "text/x-shellscript"
+    content = file("${path.module}/init.sh")
+  }
+}
+
+resource "azurerm_linux_virtual_machine" "vm" {
+  name = "${var.labelPrefix}-vm"
+  resource_group_name = azurerm_resource_group.resourceGroup.name
+  location = azurerm_resource_group.resourceGroup.location
+  size = "B1s"
+  network_interface_ids = [ azurerm_network_interface.nic.id ]
+  admin_username = var.admin_username
+  custom_data = data.cloudinit_config.ws-init.rendered
+
+  admin_ssh_key {
+    username = var.admin_username
+    public_key = file("~/.ssh/id_rsa.pub")
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching = "ReadWrite"
+  }
+}
+
+output "rg-name" {
+  value = azurerm_resource_group.resourceGroup.name
+}
+output "public-ip" {
+  value = azurerm_public_ip.pip.ip_address
+}
