@@ -30,3 +30,16 @@ resource "azurerm_resource_group" "resourceGroup" {
   name = "${var.labelPrefix}-A05-RG"
   location = var.region
 }
+
+resource "azurerm_virtual_network" "VNet" {
+  resource_group_name = azurerm_resource_group.resourceGroup.name
+  name = "${var.labelPrefix}-vnet"
+  location = azurerm_resource_group.resourceGroup.location
+  address_space = [ "10.0.0.0/16" ]
+  subnet = [ {
+    name = "${var.labelPrefix}-subnet"
+    address_prefix = "10.0.1.0/24"
+} ]
+  depends_on = [ azurerm_resource_group.resourceGroup ]
+}
+
