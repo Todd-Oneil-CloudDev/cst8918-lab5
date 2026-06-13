@@ -24,3 +24,9 @@ provider "azurerm" {
 provider "cloudinit" {
     # configuration options
 }
+
+# Resource Creation And Configuration
+resource "azurerm_resource_group" "resourceGroup" {
+  name = "${var.labelPrefix}-A05-RG"
+  location = var.region
+}
