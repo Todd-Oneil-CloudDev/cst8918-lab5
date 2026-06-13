@@ -43,3 +43,42 @@ resource "azurerm_virtual_network" "VNet" {
   depends_on = [ azurerm_resource_group.resourceGroup ]
 }
 
+resource "azurerm_public_ip" "pip" {
+  name                = "${var.labelPrefix}-pip"
+  resource_group_name = azurerm_resource_group.resourceGroup.name
+  location            = azurerm_resource_group.resourceGroup.location
+  allocation_method   = "Dynamic"
+  depends_on = [ azurerm_virtual_network.VNet ]
+}
+
+# For production it is not recommended to allow "*" for source_address_prefix
+# This allows for any IP to reach the SSH port
+resource "azurerm_network_security_group" "nsg" {
+  name = "${var.labelPrefix}-nsg"
+  resource_group_name = azurerm_resource_group.resourceGroup.name
+  location = azurerm_resource_group.resourceGroup.location
+  security_rule = [ 
+    {
+    name = "inbound-ssh"
+    priority = 102
+    direction = "Inbound"
+    access = "allow"
+    protocol = "Tcp"
+    source_port_range = "*"
+    destination_port_range = "22"
+    source_address_prefix = "*"
+    destination_address_prefix = "*"
+    },
+    {
+    name = "inbound-web"
+    priority = 103
+    direction = "Inbound"
+    access = "allow"
+    protocol = "Tcp"
+    source_port_range = "*"
+    destination_port_range = "80"
+    source_address_prefix = "*"
+    destination_address_prefix = "*"
+    }
+   ]
+}
