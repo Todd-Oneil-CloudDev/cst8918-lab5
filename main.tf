@@ -61,30 +61,30 @@ resource "azurerm_network_security_group" "nsg" {
   name = "${var.labelPrefix}-nsg"
   resource_group_name = azurerm_resource_group.resourceGroup.name
   location = azurerm_resource_group.resourceGroup.location
-  security_rule = [ 
-    {
+  security_rule {
+    description = "inbound ssh"
     name = "inbound-ssh"
     priority = 102
     direction = "Inbound"
-    access = "allow"
+    access = "Allow"
     protocol = "Tcp"
     source_port_range = "*"
     destination_port_range = "22"
     source_address_prefix = "*"
     destination_address_prefix = "*"
-    },
-    {
+    }
+  security_rule {
+    description = "inbound web"
     name = "inbound-web"
     priority = 103
     direction = "Inbound"
-    access = "allow"
+    access = "Allow"
     protocol = "Tcp"
     source_port_range = "*"
     destination_port_range = "80"
     source_address_prefix = "*"
     destination_address_prefix = "*"
     }
-   ]
 }
 
 resource "azurerm_network_interface" "nic" {
@@ -121,7 +121,7 @@ resource "azurerm_linux_virtual_machine" "vm" {
   name = "${var.labelPrefix}-vm"
   resource_group_name = azurerm_resource_group.resourceGroup.name
   location = azurerm_resource_group.resourceGroup.location
-  size = "B1s"
+  size = "Standard_B2s"
   network_interface_ids = [ azurerm_network_interface.nic.id ]
   admin_username = var.admin_username
   custom_data = data.cloudinit_config.ws-init.rendered
@@ -129,6 +129,13 @@ resource "azurerm_linux_virtual_machine" "vm" {
   admin_ssh_key {
     username = var.admin_username
     public_key = file("~/.ssh/id_rsa.pub")
+  }
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
+    version   = "latest"
   }
 
   os_disk {

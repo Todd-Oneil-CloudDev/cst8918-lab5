@@ -11,5 +11,5 @@ variable "region" {
 
 variable "admin_username" {
   description = "administrator"
-  default = "admin"
+  default = "todd"
 }
