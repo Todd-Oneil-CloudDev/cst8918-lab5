@@ -106,6 +106,7 @@ resource "azurerm_network_interface_security_group_association" "main" {
   network_security_group_id = azurerm_network_security_group.nsg.id
 }
 
+#script to run to start the webserver
 data "cloudinit_config" "ws-init" {
   gzip = false
   base64_encode = true
@@ -123,14 +124,7 @@ resource "azurerm_linux_virtual_machine" "vm" {
   location = azurerm_resource_group.resourceGroup.location
   size = "Standard_B2s"
   network_interface_ids = [ azurerm_network_interface.nic.id ]
-  admin_username = var.admin_username
-  custom_data = data.cloudinit_config.ws-init.rendered
-
-  admin_ssh_key {
-    username = var.admin_username
-    public_key = file("~/.ssh/id_rsa.pub")
-  }
-
+ 
   source_image_reference {
     publisher = "Canonical"
     offer     = "0001-com-ubuntu-server-jammy"
@@ -142,11 +136,30 @@ resource "azurerm_linux_virtual_machine" "vm" {
     storage_account_type = "Standard_LRS"
     caching = "ReadWrite"
   }
+
+  computer_name = "${var.labelPrefix}A05vm"
+  admin_username = var.admin_username
+  disable_password_authentication = true
+
+  admin_ssh_key {
+    username = var.admin_username
+    public_key = file("~/.ssh/id_rsa.pub")
+  }
+   custom_data = data.cloudinit_config.ws-init.rendered
 }
 
-output "rg-name" {
+output "resource_group_name" {
   value = azurerm_resource_group.resourceGroup.name
 }
-output "public-ip" {
-  value = azurerm_public_ip.pip.ip_address
+
+output "vm_name" {
+  value = azurerm_linux_virtual_machine.vm.name
+}
+
+output "nic_name" {
+  value = azurerm_network_interface.nic.name
+}
+
+output "public_ip" {
+  value = azurerm_linux_virtual_machine.vm.public_ip_address
 }
